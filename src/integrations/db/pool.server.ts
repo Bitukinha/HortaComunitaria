@@ -21,6 +21,11 @@ export function getPool(): Pool {
     _pool = new Pool({
       connectionString,
       ssl: { rejectUnauthorized: false },
+      // Fail fast instead of hanging the request forever if the database is
+      // unreachable (e.g. wrong/missing DATABASE_URL in the deploy target).
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 30_000,
+      max: 5,
     });
   }
   return _pool;
