@@ -85,10 +85,20 @@ HortaComunitaria/
 Requer [Node.js](https://nodejs.org) 20+ (testado com Node 22) — funciona em
 Windows, macOS e Linux.
 
+O projeto usa PostgreSQL no Neon. Configure a variável `DATABASE_URL` usando a
+string de conexão do banco da aplicação:
+
 ```bash
+cp .env.example .env
+# ajuste DATABASE_URL para a string do Neon
 npm install
-cp .env.example .env   # preencha DATABASE_URL com a connection string do seu Postgres/Neon
 npm run dev
+```
+
+Exemplo do arquivo `.env`:
+
+```env
+DATABASE_URL="postgresql://neondb_owner:***@ep-delicate-star-a5kwrzw0-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ```
 
 Para criar as tabelas no banco (uma única vez):
