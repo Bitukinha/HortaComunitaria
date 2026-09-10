@@ -97,7 +97,7 @@ npm run dev
 Exemplo do arquivo `.env`:
 
 ```env
-DATABASE_URL="postgresql://neondb_owner:***@ep-delicate-star-a5kwrzw0-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL="postgresql://neondb_owner:npg_FiNUJLh04Xtk@ep-square-star-aci9pcsi-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ```
 
 Para criar as tabelas no banco (uma única vez):
