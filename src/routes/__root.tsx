@@ -15,7 +15,7 @@ function useServiceWorker() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Installability is a nice-to-have; a failed registration shouldn't break the app.
+
       });
     }
   }, []);
@@ -139,7 +139,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      {}
       <Outlet />
     </QueryClientProvider>
   );

@@ -1,5 +1,4 @@
--- Horta Comunitária — dados de exemplo (opcional).
--- Execução: psql "$DATABASE_URL" -f database/seed.sql
+
 
 INSERT INTO participantes (nome, contato, tipo_participacao) VALUES
   ('Maria Oliveira', 'maria@horta.org', 'Administrador'),

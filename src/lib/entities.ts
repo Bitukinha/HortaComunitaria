@@ -5,9 +5,9 @@ export type Field = {
   label: string;
   type: FieldType;
   options?: string[];
-  /** table name for reference fields */
+  
   refTable?: EntityKey;
-  /** column of the referenced table used as the visible label */
+  
   refLabel?: string;
   required?: boolean;
   step?: string;
@@ -224,6 +224,4 @@ export const entities: Record<EntityKey, EntityConfig> = {
   },
 };
 
-// Registros vindos do banco têm formato dinâmico por entidade.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Row = any;

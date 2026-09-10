@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Menu, Sprout } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -29,7 +29,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 bg-deep text-deep-foreground shadow-md">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-deep text-deep-foreground shadow-[0_10px_30px_rgba(15,23,42,0.12)]">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <button
             className="rounded-md p-1.5 hover:bg-sidebar-accent md:hidden"
@@ -38,15 +38,26 @@ export function AppShell({
           >
             <Menu className="size-5" />
           </button>
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-lg bg-leaf text-leaf-foreground">
-              <Sprout className="size-5" />
+
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src="/hortaativa-badge.svg"
+              alt="Logo HortaAtiva"
+              className="h-11 w-11 rounded-xl ring-2 ring-white/10 shadow-lg shadow-emerald-900/20"
+            />
+            <span className="flex flex-col leading-none">
+              <span className="text-xl font-black tracking-tight">HortaAtiva</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-deep-foreground/70">
+                comunitária
+              </span>
             </span>
-            <span className="text-lg font-bold tracking-tight">Horta Comunitária</span>
           </Link>
-          <span className="ml-auto hidden text-xs uppercase tracking-widest opacity-70 sm:block">
-            AEP 2026.2
-          </span>
+
+          <div className="ml-auto flex items-center gap-2">
+            <span className="hidden rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-deep-foreground/70 sm:inline-flex">
+              AEP 2026.2
+            </span>
+          </div>
         </div>
         <nav
           className={cn(
@@ -62,10 +73,10 @@ export function AppShell({
                 to={item.to}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
+                  "whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200",
                   active
-                    ? "bg-leaf text-leaf-foreground"
-                    : "text-deep-foreground/75 hover:bg-sidebar-accent hover:text-deep-foreground",
+                    ? "bg-leaf text-leaf-foreground shadow-sm shadow-emerald-900/10"
+                    : "text-deep-foreground/75 hover:bg-white/5 hover:text-deep-foreground",
                 )}
               >
                 {item.label}

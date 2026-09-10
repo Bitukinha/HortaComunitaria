@@ -1,6 +1,5 @@
-// TanStack Start server functions: the .handler() bodies below only ever run
-// server-side (the client gets an RPC stub), so importing pool.server.ts here
-// does not leak the pg driver into the browser bundle.
+
+
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -18,7 +17,6 @@ const mutationInput = z.object({
 const updateInput = mutationInput.extend({ id: z.string() });
 const deleteInput = z.object({ key: entityKeySchema, id: z.string() });
 
-/** Coerces a raw form value to the type the column expects; blank optional fields become NULL. */
 function coerceValue(fieldType: string, raw: unknown): unknown {
   if (raw === "" || raw === undefined) return null;
   if (fieldType === "number") return typeof raw === "number" ? raw : Number(raw);

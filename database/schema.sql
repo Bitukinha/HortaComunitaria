@@ -1,6 +1,4 @@
--- Horta Comunitária — schema do banco (PostgreSQL / Neon)
--- Consolidado a partir das migrations originais do projeto.
--- Execução: psql "$DATABASE_URL" -f database/schema.sql
+
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -66,8 +64,6 @@ CREATE TABLE IF NOT EXISTS destinacoes (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Regra de negócio: a soma das destinações de uma colheita nunca pode
--- ultrapassar a quantidade colhida.
 CREATE OR REPLACE FUNCTION valida_destinacao()
 RETURNS TRIGGER
 LANGUAGE plpgsql

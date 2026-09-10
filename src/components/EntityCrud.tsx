@@ -47,7 +47,6 @@ import {
   type Row,
 } from "@/lib/horta";
 
-/** Human label for a row of any entity, used in reference selects and tables. */
 export function describeRow(key: EntityKey, row: Row, lookups: Lookups): string {
   switch (key) {
     case "canteiros":
