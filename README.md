@@ -50,14 +50,13 @@ O detalhamento da Descoberta e da Concepção está em
 
 ## Cronograma de Execução
 
-| Data               | Atividade                                                                             | Responsável   |
-| ------------------ | ------------------------------------------------------------------------------------- | ------------- |
-| 08/09 – 12/09/2026 | Descoberta: levantamento de dores, partes interessadas e requisitos                   | Jean Novaes   |
-| 13/09 – 17/09/2026 | Modelagem do banco de dados (DER) e `database/schema.sql`                             | Gabriel Kondo |
-| 18/09 – 21/09/2026 | Diagrama de classes e definição da arquitetura                                        | Lucas Reche   |
-| 22/09 – 25/09/2026 | Estruturação do repositório (`/src`, `/docs`, `/database`) e ambiente (Neon Postgres) | Jean Novaes   |
-| 26/09 – 28/09/2026 | Redação do documento formal da 1ª entrega (PDF)                                       | Gabriel Kondo |
-| 29/09 – 30/09/2026 | Revisão final, README e submissão da 1ª entrega                                       | Lucas Reche   |
+| Data              | Atividade                                                                                                          | Responsável   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------- |
+| 27/07 – 02/08/2026 | Levantamento inicial do problema, objetivos e escopo do sistema                                                   | Jean Novaes   |
+| 03/08 – 15/08/2026 | Definição da arquitetura, regras do negócio e organização do projeto                                              | Gabriel Kondo |
+| 16/08 – 29/08/2026 | Modelagem do banco de dados, diagrama de classes e documentação técnica                                          | Lucas Reche   |
+| 30/08 – 06/09/2026 | Estruturação do repositório (`/src`, `/docs`, `/database`), ambiente e integração com PostgreSQL/Neon            | Jean Novaes   |
+| 07/09 – 10/09/2026 | Revisão final, ajustes do README, validações e preparação da entrega final                                       | Gabriel Kondo |
 
 ## Justificativa Técnica (resumo)
 
