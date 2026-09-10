@@ -9,7 +9,7 @@ colhido, com um painel de indicadores gerais.
 Projeto da **AEP (Atividade de Estudo Programada) — 4º Semestre 2026.2**,
 Engenharia de Software / Análise e Desenvolvimento de Sistemas — UniCesumar.
 
-**Equipe:** Jean Novaes, Gabriel Kondo, Lucas Reche
+**Equipe:** Jean Novaes, Gabriel Kondo, Diego Gabriel
 
 ## Alinhamento aos ODS
 
@@ -54,7 +54,7 @@ O detalhamento da Descoberta e da Concepção está em
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------- |
 | 27/07 – 02/08/2026 | Levantamento inicial do problema, objetivos e escopo do sistema                                                   | Jean Novaes   |
 | 03/08 – 15/08/2026 | Definição da arquitetura, regras do negócio e organização do projeto                                              | Gabriel Kondo |
-| 16/08 – 29/08/2026 | Modelagem do banco de dados, diagrama de classes e documentação técnica                                          | Lucas Reche   |
+| 16/08 – 29/08/2026 | Modelagem do banco de dados, diagrama de classes e documentação técnica                                          | Diego Gabriel |
 | 30/08 – 06/09/2026 | Estruturação do repositório (`/src`, `/docs`, `/database`), ambiente e integração com PostgreSQL/Neon            | Jean Novaes   |
 | 07/09 – 10/09/2026 | Revisão final, ajustes do README, validações e preparação da entrega final                                       | Gabriel Kondo |
 
