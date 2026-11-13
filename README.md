@@ -144,3 +144,58 @@ Passos:
 ## Repositório
 
 https://github.com/Bitukinha/HortaComunitaria
+
+## Regras de Negócio
+
+### RN01 — Não destinar mais do que foi colhido
+
+A soma de todas as destinações de uma colheita **nunca pode ultrapassar** a
+quantidade colhida. É a regra central do projeto: resolve a dor levantada nas
+entrevistas de prometer ou entregar mais alimento do que realmente existe.
+
+    saldo disponível = quantidade colhida − soma das destinações da colheita
+
+Exemplo: uma colheita de **10 kg** que já tem **6 kg** para a Feira e **2 kg**
+para a Prefeitura tem **2 kg** de saldo disponível. Uma nova destinação dessa
+colheita pode ser de no máximo 2 kg.
+
+Ao escolher a colheita no formulário de destinação, o sistema mostra o saldo
+antes de salvar, no formato:
+
+> Colhido: 10 kg · Destinado: 8 kg · Disponível: 2 kg
+
+### Mensagens que o sistema mostra
+
+| Situação | Mensagem exibida |
+|---|---|
+| Salvar uma destinação sem escolher o destino | "Escolha para onde foi a colheita." |
+| Quantidade zero ou negativa | "A quantidade destinada deve ser maior que zero." |
+| Nova destinação maior que o saldo | "Quantidade maior que o disponível desta colheita (2 kg)." |
+| Colheita sem saldo nenhum | "Esta colheita já foi totalmente destinada." |
+| Editar uma destinação e passar do colhido | "Com essa alteração, o total destinado passaria do colhido (10 kg)." |
+| Diminuir uma colheita para menos do que já foi destinado | "Esta colheita já tem 8 kg destinados; a quantidade não pode ficar abaixo disso." |
+
+Os valores entre parênteses mudam conforme a colheita escolhida.
+
+### Onde a regra é garantida
+
+A regra é verificada em três camadas, para que não possa ser contornada:
+
+1. **Formulário:** mostra o saldo e avisa antes de salvar.
+2. **Servidor:** a classe `Colheita` (método `verificarDestinacao()`, em
+   `src/domain/Colheita.ts`) valida dentro de uma transação que trava a
+   colheita (`SELECT ... FOR UPDATE`). Assim, dois cadastros feitos ao mesmo
+   tempo não conseguem estourar o saldo.
+3. **Banco de dados:** o gatilho `trg_valida_destinacao` (em
+   `database/schema.sql`) recusa qualquer gravação que ultrapasse o colhido,
+   mesmo que alguém grave direto no banco.
+
+### Outras regras
+
+- **RN02 — Canteiro com identificação única:** dois canteiros não podem ter a
+  mesma identificação.
+- **RN03 — Exclusão em cascata:** excluir um canteiro exclui os plantios dele;
+  excluir um plantio exclui as colheitas; excluir uma colheita exclui as
+  destinações. O sistema sempre pede confirmação antes de excluir.
+- **RN04 — Destinos possíveis:** Feira, Prefeitura (licitação), Doação, Cozinha
+  comunitária, Banco de alimentos, Consumo dos participantes e Venda solidária.
