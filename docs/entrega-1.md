@@ -1,6 +1,6 @@
 # Horta Comunitária — 1ª Entrega da AEP (Bimestre 1, 2026.2)
 
-**Equipe:** Jean Novaes, Gabriel Kondo, Lucas Reche
+**Equipe:** Jean Novaes, Gabriel Kondo, Diego Gabriel
 **Curso:** Engenharia de Software / Análise e Desenvolvimento de Sistemas — UniCesumar
 **Repositório:** https://github.com/Bitukinha/HortaComunitaria
 

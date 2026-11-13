@@ -88,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Gestão de horta comunitária — participantes, canteiros, plantios, colheitas e destinações.",
       },
-      { name: "author", content: "Equipe AEP — Jean Novaes, Gabriel Kondo, Lucas Reche" },
+      { name: "author", content: "Equipe AEP — Jean Novaes, Gabriel Kondo, Diego Gabriel" },
       { property: "og:title", content: "Horta Comunitária" },
       {
         property: "og:description",
