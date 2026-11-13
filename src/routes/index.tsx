@@ -1,51 +1,76 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Leaf, Sprout, Users, HandHeart } from "lucide-react";
+import { Fence, HandHeart, Leaf, Sprout, Users } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listAll } from "@/lib/horta";
 import type { Row } from "@/lib/horta";
+import { Canteiro, Colheita, Destinacao, Plantio, RegistroProdutivo } from "@/domain";
 
 export const Route = createFileRoute("/")({
   component: Painel,
 });
 
-function sum(rows: Row[], field: string): number {
-  return rows.reduce((total, row) => total + Number(row[field] ?? 0), 0);
-}
-
 function usePainelData() {
   return useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const [participantes, canteiros, colheitas, destinacoes] = await Promise.all([
+      const [participantes, canteiros, plantios, colheitas, destinacoes] = await Promise.all([
         listAll("participantes"),
         listAll("canteiros"),
+        listAll("plantios"),
         listAll("colheitas"),
         listAll("destinacoes"),
       ]);
+
+      const registros: RegistroProdutivo[] = [
+        ...plantios.map((row: Row) => Plantio.fromRow(row)),
+        ...colheitas.map((row: Row) => Colheita.fromRow(row)),
+      ];
+      const indicadores = RegistroProdutivo.somarIndicadores(registros);
+
+      const listaDestinacoes = destinacoes.map((row: Row) => Destinacao.fromRow(row));
+      const porDestino = new Map<string, number>();
+      for (const d of listaDestinacoes) {
+        porDestino.set(
+          d.getTipoDestino(),
+          (porDestino.get(d.getTipoDestino()) ?? 0) + d.getQuantidadeKg(),
+        );
+      }
+
+      const listaCanteiros = canteiros.map((row: Row) => Canteiro.fromRow(row));
+
       return {
         participantes: participantes.length,
-        canteirosAtivos: canteiros.filter((c: Row) => c.status === "Ativo").length,
-        canteirosTotal: canteiros.length,
-        colhidoKg: sum(colheitas, "quantidade_kg"),
-        destinadoKg: sum(destinacoes, "quantidade_kg"),
-        porDestino: Object.entries(
-          destinacoes.reduce((acc: Record<string, number>, d: Row) => {
-            acc[d.tipo_destino] = (acc[d.tipo_destino] ?? 0) + Number(d.quantidade_kg ?? 0);
-            return acc;
-          }, {}),
-        ).sort((a, b) => b[1] - a[1]),
+        canteirosAtivos: listaCanteiros.filter((c) => c.estaAtivo()).length,
+        canteirosTotal: listaCanteiros.length,
+        indicadores: [...indicadores.entries()],
+        colhidoKg: indicadores.get(ROTULO_COLHIDO) ?? 0,
+        destinadoKg: listaDestinacoes.reduce((total, d) => total + d.getQuantidadeKg(), 0),
+        porDestino: [...porDestino.entries()].sort((a, b) => b[1] - a[1]),
       };
     },
   });
 }
 
+const ROTULO_COLHIDO = Colheita.ROTULO_INDICADOR;
+
 function Painel() {
   const { data, isLoading, isError, error } = usePainelData();
   const saldoKg = (data?.colhidoKg ?? 0) - (data?.destinadoKg ?? 0);
   const maxDestino = Math.max(...(data?.porDestino ?? []).map(([, kg]) => kg), 0);
+
+  const indicadoresProdutivos = (
+    data?.indicadores ?? [
+      [Plantio.ROTULO_INDICADOR, 0],
+      [ROTULO_COLHIDO, 0],
+    ]
+  ).map(([rotulo, valor]) => ({
+    label: rotulo,
+    value: rotulo === ROTULO_COLHIDO ? valor.toFixed(1) : String(valor),
+    icon: rotulo === ROTULO_COLHIDO ? Leaf : Sprout,
+  }));
 
   const cards = [
     {
@@ -56,13 +81,9 @@ function Painel() {
     {
       label: "Canteiros ativos",
       value: `${data?.canteirosAtivos ?? 0} / ${data?.canteirosTotal ?? 0}`,
-      icon: Sprout,
+      icon: Fence,
     },
-    {
-      label: "Total colhido (kg)",
-      value: (data?.colhidoKg ?? 0).toFixed(1),
-      icon: Leaf,
-    },
+    ...indicadoresProdutivos,
     {
       label: "Total destinado (kg)",
       value: (data?.destinadoKg ?? 0).toFixed(1),
@@ -81,7 +102,7 @@ function Painel() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {cards.map(({ label, value, icon: Icon }) => (
           <Card key={label}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

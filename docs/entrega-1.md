@@ -69,9 +69,10 @@ ONU:
    canteiro e a um participante responsável, com data e descrição.
 6. O sistema deve permitir registrar colheitas a partir de um plantio, com
    data e quantidade colhida em kg.
-7. O sistema deve permitir registrar destinações de uma colheita (doação,
-   cozinha comunitária, banco de alimentos, consumo dos participantes ou
-   venda solidária), **impedindo que a soma das destinações de uma colheita
+7. O sistema deve permitir registrar destinações de uma colheita (feira,
+   prefeitura/licitação, doação, cozinha comunitária, banco de alimentos,
+   consumo dos participantes ou venda solidária), mostrando o saldo
+   disponível e **impedindo que a soma das destinações de uma colheita
    ultrapasse a quantidade colhida**.
 8. O sistema deve apresentar um painel com indicadores gerais: total de
    participantes, canteiros ativos, total colhido (kg) e total destinado
@@ -108,5 +109,12 @@ HortaComunitaria/
 
 ## 8. Cronograma
 
-Ver a tabela de Cronograma de Execução no [`README.md`](../README.md#cronograma-de-execução) —
-o mesmo cronograma apresentado neste documento é espelhado lá, conforme exigido.
+| Data              | Atividade                                                                                                          | Responsável   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ | ------------- |
+| 27/07 – 02/08/2026 | Levantamento inicial do problema, objetivos e escopo do sistema                                                   | Jean Novaes   |
+| 03/08 – 15/08/2026 | Definição da arquitetura, regras do negócio e organização do projeto                                              | Gabriel Kondo |
+| 16/08 – 29/08/2026 | Modelagem do banco de dados, diagrama de classes e documentação técnica                                          | Diego Gabriel |
+| 30/08 – 06/09/2026 | Estruturação do repositório (`/src`, `/docs`, `/database`), ambiente e integração com PostgreSQL/Neon            | Jean Novaes   |
+| 07/09 – 10/09/2026 | Revisão final, ajustes do README, validações e preparação da entrega final                                       | Gabriel Kondo |
+
+O mesmo cronograma está espelhado no [`README.md`](../README.md#cronograma-de-execução), conforme exigido.

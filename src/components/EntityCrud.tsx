@@ -46,6 +46,7 @@ import {
   type EntityKey,
   type Row,
 } from "@/lib/horta";
+import { Colheita, Destinacao, Participante, RegraDeNegocioError, formatarKg } from "@/domain";
 
 export function describeRow(key: EntityKey, row: Row, lookups: Lookups): string {
   switch (key) {
@@ -54,7 +55,7 @@ export function describeRow(key: EntityKey, row: Row, lookups: Lookups): string 
     case "culturas":
       return row.nome as string;
     case "participantes":
-      return row.nome as string;
+      return Participante.fromRow(row).getResumo();
     case "plantios": {
       const canteiro = lookups.canteiros?.[row.canteiro_id];
       const cultura = lookups.culturas?.[row.cultura_id];
@@ -94,10 +95,6 @@ export function useLookups() {
   });
 }
 
-function formatKg(value: number) {
-  return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-}
-
 function emptyValues(config: EntityConfig): Row {
   const v: Row = {};
   for (const f of config.fields) {
@@ -133,14 +130,19 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
     enabled: isDestinacao,
   });
 
+  function colheitaComDestinacoes(colheitaId: string): Colheita | null {
+    const linha = lookups.colheitas?.[colheitaId];
+    return linha ? Colheita.fromRow(linha, destinacoesQuery.data ?? []) : null;
+  }
+
   function resumoDaColheita(colheitaId: string, ignoreId?: string) {
-    const colheita = lookups.colheitas?.[colheitaId];
+    const colheita = colheitaComDestinacoes(colheitaId);
     if (!colheita) return null;
-    const colhido = Number(colheita.quantidade_kg ?? 0);
-    const destinado = (destinacoesQuery.data ?? [])
-      .filter((d: Row) => d.colheita_id === colheitaId && d.id !== ignoreId)
-      .reduce((total: number, d: Row) => total + Number(d.quantidade_kg ?? 0), 0);
-    return { colhido, destinado, disponivel: colhido - destinado };
+    return {
+      colhido: colheita.getQuantidadeKg(),
+      destinado: colheita.getTotalDestinado(ignoreId),
+      disponivel: colheita.getSaldoDisponivel(ignoreId),
+    };
   }
 
   function saldoDaColheita(colheitaId: string, ignoreId?: string) {
@@ -150,13 +152,27 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
   const resumoAtual =
     isDestinacao && values.colheita_id ? resumoDaColheita(values.colheita_id, editing?.id) : null;
   const saldoAtual = resumoAtual?.disponivel ?? null;
-  const excedeSaldo =
-    saldoAtual !== null &&
-    values.quantidade_kg !== "" &&
-    Number(values.quantidade_kg) > saldoAtual + 1e-9;
-  const mensagemExcedente = editing
-    ? `Com essa alteração, o total destinado passaria do colhido (${formatKg(resumoAtual?.colhido ?? 0)} kg).`
-    : `Quantidade maior que o disponível desta colheita (${formatKg(Math.max(saldoAtual ?? 0, 0))} kg).`;
+
+  function erroDaDestinacao(): string | null {
+    if (!isDestinacao || !values.colheita_id || values.quantidade_kg === "") return null;
+    const colheita = colheitaComDestinacoes(values.colheita_id);
+    if (!colheita) return null;
+    const destinacao = new Destinacao(
+      editing?.id ?? "",
+      String(values.tipo_destino || "-"),
+      Number(values.quantidade_kg),
+      String(values.data ?? ""),
+    );
+    try {
+      colheita.verificarDestinacao(destinacao, Boolean(editing));
+      return null;
+    } catch (erro) {
+      return erro instanceof RegraDeNegocioError ? erro.message : null;
+    }
+  }
+
+  const mensagemExcedente = erroDaDestinacao();
+  const excedeSaldo = mensagemExcedente !== null;
 
   const refetchAll = () => {
     void qc.invalidateQueries({ queryKey: [entityKey] });
@@ -218,7 +234,10 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
       (values[f.name] === "" || values[f.name] === null || values[f.name] === undefined),
   );
 
-  const colheitaEsgotada = isDestinacao && !editing && saldoAtual !== null && saldoAtual <= 1e-9;
+  const colheitaEsgotada =
+    isDestinacao &&
+    !editing &&
+    Boolean(colheitaComDestinacoes(values.colheita_id)?.estaTotalmenteDestinada());
 
   function handleSave() {
     if (firstMissing) {
@@ -230,7 +249,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
       return;
     }
     if (excedeSaldo) {
-      toast.error(mensagemExcedente);
+      toast.error(mensagemExcedente ?? "");
       return;
     }
     save.mutate();
@@ -382,7 +401,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
                         return (
                           <option key={opt.id} value={opt.id}>
                             {describeRow(f.refTable!, opt, lookups)}
-                            {saldo !== null ? ` · saldo ${formatKg(saldo)} kg` : ""}
+                            {saldo !== null ? ` · saldo ${formatarKg(saldo)} kg` : ""}
                           </option>
                         );
                       })}
@@ -409,7 +428,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
                     >
                       {colheitaEsgotada
                         ? "Esta colheita já foi totalmente destinada."
-                        : `Colhido: ${formatKg(resumoAtual.colhido)} kg · Destinado: ${formatKg(resumoAtual.destinado)} kg · Disponível: ${formatKg(Math.max(resumoAtual.disponivel, 0))} kg`}
+                        : `Colhido: ${formatarKg(resumoAtual.colhido)} kg · Destinado: ${formatarKg(resumoAtual.destinado)} kg · Disponível: ${formatarKg(Math.max(resumoAtual.disponivel, 0))} kg`}
                     </p>
                   ) : null}
                   {isDestinacao && f.name === "quantidade_kg" && excedeSaldo ? (

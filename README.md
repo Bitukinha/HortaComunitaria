@@ -40,9 +40,10 @@ O detalhamento da Descoberta e da Concepção está em
    canteiro e a um participante responsável, com data e descrição.
 6. O sistema deve permitir registrar colheitas a partir de um plantio, com
    data e quantidade colhida em kg.
-7. O sistema deve permitir registrar destinações de uma colheita (doação,
-   cozinha comunitária, banco de alimentos, consumo dos participantes ou
-   venda solidária), impedindo que a soma das destinações de uma colheita
+7. O sistema deve permitir registrar destinações de uma colheita (feira,
+   prefeitura/licitação, doação, cozinha comunitária, banco de alimentos,
+   consumo dos participantes ou venda solidária), mostrando o saldo
+   disponível e impedindo que a soma das destinações de uma colheita
    ultrapasse a quantidade colhida.
 8. O sistema deve apresentar um painel com indicadores gerais: total de
    participantes, canteiros ativos, total colhido (kg) e total destinado
@@ -64,13 +65,24 @@ TypeScript + React (via TanStack Start) no front-end e back-end (server
 functions), com PostgreSQL (Neon) como banco relacional — a justificativa
 completa de cada escolha está em [`docs/entrega-1.md`](docs/entrega-1.md#4-justificativa-técnica-e-arquitetural).
 
+## Orientação a Objetos
+
+A camada de domínio em [`src/domain`](src/domain) implementa o
+[diagrama de classes](docs/diagrama-classes.md): classes abstratas (`Pessoa`,
+`RegistroProdutivo`), herança (`Participante`, `Plantio`, `Colheita`),
+polimorfismo com `override` (`calcularIndicador()`, usado no Painel) e
+composição 1:N (`Canteiro → Plantio → Colheita → Destinacao`). A regra de
+não destinar mais do que o colhido fica em `Colheita.verificarDestinacao()`.
+
 ## Estrutura do Repositório
 
 ```
 HortaComunitaria/
 ├── src/            # aplicação (rotas, componentes, integrações)
 │   ├── routes/          # páginas (uma por entidade + painel + histórico)
-│   ├── components/      # AppShell, EntityCrud (CRUD genérico)
+│   ├── domain/          # classes de domínio (POO): Pessoa, Participante,
+│   │                    #   RegistroProdutivo, Plantio, Colheita, Destinacao…
+│   ├── components/      # AppShell, EntityCrud (CRUD genérico), relatórios
 │   ├── lib/              # metadados das entidades e helpers
 │   └── integrations/db/  # conexão Postgres (Neon) e server functions
 ├── docs/           # descoberta, concepção, justificativa técnica,
@@ -94,10 +106,11 @@ npm install
 npm run dev
 ```
 
-Exemplo do arquivo `.env`:
+Exemplo do arquivo `.env` (troque pelos dados do seu banco; nunca publique a
+senha real):
 
 ```env
-DATABASE_URL="postgresql://neondb_owner:npg_FiNUJLh04Xtk@ep-square-star-aci9pcsi-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL="postgresql://usuario:senha@host.neon.tech/neondb?sslmode=require"
 ```
 
 Para criar as tabelas no banco (uma única vez):

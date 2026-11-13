@@ -14,13 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { describeRow, type Lookups } from "@/components/EntityCrud";
-import { entities, formatDate, listAll, type Row } from "@/lib/horta";
+import { formatarKg, TIPOS_DESTINO } from "@/domain";
+import { formatDate, listAll, type Row } from "@/lib/horta";
 
 const destinos = entities.destinacoes.fields.find((f) => f.name === "tipo_destino")?.options ?? [];
-
-function formatKg(value: number) {
-  return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-}
 
 function alimentoDaColheita(colheitaId: string, lookups: Lookups) {
   const colheita = lookups.colheitas?.[colheitaId];
@@ -134,7 +131,7 @@ export function DestinacoesReport({ lookups }: { lookups: Lookups }) {
                         {colheita ? describeRow("colheitas", colheita, lookups) : "—"}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatKg(Number(d.quantidade_kg))} kg
+                        {formatarKg(Number(d.quantidade_kg))} kg
                       </TableCell>
                     </TableRow>
                   );
@@ -145,7 +142,7 @@ export function DestinacoesReport({ lookups }: { lookups: Lookups }) {
                   <TableCell colSpan={4} className="font-semibold">
                     Total ({filtradas.length} {filtradas.length === 1 ? "entrega" : "entregas"})
                   </TableCell>
-                  <TableCell className="text-right font-semibold">{formatKg(total)} kg</TableCell>
+                  <TableCell className="text-right font-semibold">{formatarKg(total)} kg</TableCell>
                 </TableRow>
               </TableFooter>
             </Table>

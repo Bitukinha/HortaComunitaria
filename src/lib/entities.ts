@@ -1,3 +1,5 @@
+import { TIPOS_DESTINO } from "@/domain/Destinacao";
+
 export type FieldType = "text" | "number" | "date" | "select" | "reference" | "textarea";
 
 export type Field = {
@@ -210,15 +212,7 @@ export const entities: Record<EntityKey, EntityConfig> = {
         type: "select",
         placeholder: "Selecione o destino…",
         requiredMessage: "Escolha para onde foi a colheita.",
-        options: [
-          "Feira",
-          "Prefeitura (licitação)",
-          "Doação",
-          "Cozinha comunitária",
-          "Banco de alimentos",
-          "Consumo dos participantes",
-          "Venda solidária",
-        ],
+        options: [...TIPOS_DESTINO],
         required: true,
       },
       {
