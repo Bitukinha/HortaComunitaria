@@ -5,9 +5,9 @@ export type Field = {
   label: string;
   type: FieldType;
   options?: string[];
-  
+  placeholder?: string;
+  requiredMessage?: string;
   refTable?: EntityKey;
-  
   refLabel?: string;
   required?: boolean;
   step?: string;
@@ -26,6 +26,7 @@ export type EntityKey =
 export type EntityConfig = {
   key: EntityKey;
   singular: string;
+  feminino?: boolean;
   plural: string;
   description: string;
   orderBy: string;
@@ -77,6 +78,7 @@ export const entities: Record<EntityKey, EntityConfig> = {
   culturas: {
     key: "culturas",
     singular: "Cultura",
+    feminino: true,
     plural: "Culturas",
     description: "Espécies cultivadas, com categoria e período estimado de cultivo.",
     orderBy: "nome",
@@ -129,6 +131,7 @@ export const entities: Record<EntityKey, EntityConfig> = {
   atividades: {
     key: "atividades",
     singular: "Atividade",
+    feminino: true,
     plural: "Atividades",
     description: "Manutenção realizada na horta, com tipo, data, canteiro e responsável.",
     orderBy: "data",
@@ -163,6 +166,7 @@ export const entities: Record<EntityKey, EntityConfig> = {
   colheitas: {
     key: "colheitas",
     singular: "Colheita",
+    feminino: true,
     plural: "Colheitas",
     description: "Quantidade colhida a partir de cada plantio.",
     orderBy: "data",
@@ -187,6 +191,7 @@ export const entities: Record<EntityKey, EntityConfig> = {
   destinacoes: {
     key: "destinacoes",
     singular: "Destinação",
+    feminino: true,
     plural: "Destinações",
     description:
       "Para onde foram os alimentos colhidos. A quantidade nunca pode ultrapassar o total da colheita.",
@@ -203,7 +208,11 @@ export const entities: Record<EntityKey, EntityConfig> = {
         name: "tipo_destino",
         label: "Destino",
         type: "select",
+        placeholder: "Selecione o destino…",
+        requiredMessage: "Escolha para onde foi a colheita.",
         options: [
+          "Feira",
+          "Prefeitura (licitação)",
           "Doação",
           "Cozinha comunitária",
           "Banco de alimentos",

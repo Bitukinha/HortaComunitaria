@@ -1,10 +1,10 @@
-
-
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { entities, type EntityKey, type Row } from "@/lib/entities";
+import type { PoolClient } from "pg";
 import { getPool } from "./pool.server";
+import { validateSaldo } from "./saldo";
 
 const entityKeys = Object.keys(entities) as [EntityKey, ...EntityKey[]];
 const entityKeySchema = z.enum(entityKeys);
@@ -41,6 +41,21 @@ export const listAllEntityFn = createServerFn({ method: "GET" })
     return rows as Row[];
   });
 
+async function inTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export const insertEntityFn = createServerFn({ method: "POST" })
   .validator((input: unknown) => mutationInput.parse(input))
   .handler(async ({ data }) => {
@@ -48,11 +63,14 @@ export const insertEntityFn = createServerFn({ method: "POST" })
     const columns = config.fields.map((f) => f.name);
     const values = config.fields.map((f) => coerceValue(f.type, data.values[f.name]));
     const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
-    const { rows } = await getPool().query(
-      `INSERT INTO ${data.key} (${columns.join(", ")}) VALUES (${placeholders}) RETURNING *`,
-      values,
-    );
-    return rows[0] as Row;
+    return inTransaction(async (client) => {
+      await validateSaldo(client, data.key, data.values);
+      const { rows } = await client.query(
+        `INSERT INTO ${data.key} (${columns.join(", ")}) VALUES (${placeholders}) RETURNING *`,
+        values,
+      );
+      return rows[0] as Row;
+    });
   });
 
 export const updateEntityFn = createServerFn({ method: "POST" })
@@ -62,11 +80,14 @@ export const updateEntityFn = createServerFn({ method: "POST" })
     const columns = config.fields.map((f) => f.name);
     const values = config.fields.map((f) => coerceValue(f.type, data.values[f.name]));
     const setClause = columns.map((c, i) => `${c} = $${i + 1}`).join(", ");
-    const { rows } = await getPool().query(
-      `UPDATE ${data.key} SET ${setClause} WHERE id = $${columns.length + 1} RETURNING *`,
-      [...values, data.id],
-    );
-    return rows[0] as Row;
+    return inTransaction(async (client) => {
+      await validateSaldo(client, data.key, data.values, data.id);
+      const { rows } = await client.query(
+        `UPDATE ${data.key} SET ${setClause} WHERE id = $${columns.length + 1} RETURNING *`,
+        [...values, data.id],
+      );
+      return rows[0] as Row;
+    });
   });
 
 export const deleteEntityFn = createServerFn({ method: "POST" })

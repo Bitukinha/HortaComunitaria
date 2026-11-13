@@ -94,11 +94,15 @@ export function useLookups() {
   });
 }
 
+function formatKg(value: number) {
+  return value.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+}
+
 function emptyValues(config: EntityConfig): Row {
   const v: Row = {};
   for (const f of config.fields) {
     if (f.type === "date") v[f.name] = todayISO();
-    else if (f.type === "select") v[f.name] = f.options?.[0] ?? "";
+    else if (f.type === "select") v[f.name] = f.placeholder ? "" : (f.options?.[0] ?? "");
     else if (f.type === "number") v[f.name] = "";
     else v[f.name] = "";
   }
@@ -107,6 +111,7 @@ function emptyValues(config: EntityConfig): Row {
 
 export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
   const config = entities[entityKey];
+  const o = config.feminino ? "a" : "o";
   const qc = useQueryClient();
   const lookupsQuery = useLookups();
   const lookups = lookupsQuery.data ?? {};
@@ -121,8 +126,41 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
   const [values, setValues] = useState<Row>(() => emptyValues(config));
   const [pendingDelete, setPendingDelete] = useState<Row | null>(null);
 
+  const isDestinacao = entityKey === "destinacoes";
+  const destinacoesQuery = useQuery({
+    queryKey: ["destinacoes", "all"],
+    queryFn: () => listAll("destinacoes"),
+    enabled: isDestinacao,
+  });
+
+  function resumoDaColheita(colheitaId: string, ignoreId?: string) {
+    const colheita = lookups.colheitas?.[colheitaId];
+    if (!colheita) return null;
+    const colhido = Number(colheita.quantidade_kg ?? 0);
+    const destinado = (destinacoesQuery.data ?? [])
+      .filter((d: Row) => d.colheita_id === colheitaId && d.id !== ignoreId)
+      .reduce((total: number, d: Row) => total + Number(d.quantidade_kg ?? 0), 0);
+    return { colhido, destinado, disponivel: colhido - destinado };
+  }
+
+  function saldoDaColheita(colheitaId: string, ignoreId?: string) {
+    return resumoDaColheita(colheitaId, ignoreId)?.disponivel ?? null;
+  }
+
+  const resumoAtual =
+    isDestinacao && values.colheita_id ? resumoDaColheita(values.colheita_id, editing?.id) : null;
+  const saldoAtual = resumoAtual?.disponivel ?? null;
+  const excedeSaldo =
+    saldoAtual !== null &&
+    values.quantidade_kg !== "" &&
+    Number(values.quantidade_kg) > saldoAtual + 1e-9;
+  const mensagemExcedente = editing
+    ? `Com essa alteração, o total destinado passaria do colhido (${formatKg(resumoAtual?.colhido ?? 0)} kg).`
+    : `Quantidade maior que o disponível desta colheita (${formatKg(Math.max(saldoAtual ?? 0, 0))} kg).`;
+
   const refetchAll = () => {
     void qc.invalidateQueries({ queryKey: [entityKey] });
+    void qc.invalidateQueries({ queryKey: ["destinacoes"] });
     void qc.invalidateQueries({ queryKey: ["lookups"] });
     void qc.invalidateQueries({ queryKey: ["dashboard"] });
     void qc.invalidateQueries({ queryKey: ["historico"] });
@@ -140,7 +178,9 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
       else await insertRow(entityKey, payload);
     },
     onSuccess: () => {
-      toast.success(editing ? `${config.singular} atualizado.` : `${config.singular} cadastrado.`);
+      toast.success(
+        editing ? `${config.singular} atualizad${o}.` : `${config.singular} cadastrad${o}.`,
+      );
       setDialogOpen(false);
       setEditing(null);
       refetchAll();
@@ -151,7 +191,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
   const remove = useMutation({
     mutationFn: async (row: Row) => deleteRow(entityKey, row.id),
     onSuccess: () => {
-      toast.success(`${config.singular} excluído.`);
+      toast.success(`${config.singular} excluíd${o}.`);
       setPendingDelete(null);
       refetchAll();
     },
@@ -172,11 +212,29 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
     setDialogOpen(true);
   }
 
-  const missingRequired = config.fields.some(
+  const firstMissing = config.fields.find(
     (f) =>
       f.required &&
       (values[f.name] === "" || values[f.name] === null || values[f.name] === undefined),
   );
+
+  const colheitaEsgotada = isDestinacao && !editing && saldoAtual !== null && saldoAtual <= 1e-9;
+
+  function handleSave() {
+    if (firstMissing) {
+      toast.error(firstMissing.requiredMessage ?? `Preencha o campo "${firstMissing.label}".`);
+      return;
+    }
+    if (colheitaEsgotada) {
+      toast.error("Esta colheita já foi totalmente destinada.");
+      return;
+    }
+    if (excedeSaldo) {
+      toast.error(mensagemExcedente);
+      return;
+    }
+    save.mutate();
+  }
 
   const rows = rowsQuery.data ?? [];
 
@@ -202,12 +260,22 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
     <AppShell title={config.plural} subtitle={config.description}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {rowsQuery.isLoading ? "Carregando…" : `${rows.length} registro(s)`}
+          {rowsQuery.isLoading
+            ? "Carregando…"
+            : rowsQuery.isError
+              ? "Não foi possível carregar"
+              : `${rows.length} registro(s)`}
         </p>
         <Button onClick={openCreate}>
-          <Plus className="size-4" /> Novo {config.singular.toLowerCase()}
+          <Plus className="size-4" /> Nov{o} {config.singular.toLowerCase()}
         </Button>
       </div>
+
+      {rowsQuery.isError ? (
+        <div className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          Erro ao acessar o banco de dados: {(rowsQuery.error as Error).message}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <Table>
@@ -222,7 +290,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {cells.length === 0 && !rowsQuery.isLoading ? (
+            {cells.length === 0 && !rowsQuery.isLoading && !rowsQuery.isError ? (
               <TableRow>
                 <TableCell
                   colSpan={config.fields.length + 1}
@@ -271,7 +339,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
             <DialogTitle>
               {editing
                 ? `Editar ${config.singular.toLowerCase()}`
-                : `Novo ${config.singular.toLowerCase()}`}
+                : `Nov${o} ${config.singular.toLowerCase()}`}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -293,6 +361,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
                       {...common}
                       className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     >
+                      {f.placeholder ? <option value="">{f.placeholder}</option> : null}
                       {f.options?.map((o) => (
                         <option key={o} value={o}>
                           {o}
@@ -305,19 +374,47 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
                       className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     >
                       <option value="">Selecione…</option>
-                      {Object.values(lookups[f.refTable] ?? {}).map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {describeRow(f.refTable!, opt, lookups)}
-                        </option>
-                      ))}
+                      {Object.values(lookups[f.refTable] ?? {}).map((opt) => {
+                        const saldo =
+                          isDestinacao && f.refTable === "colheitas"
+                            ? saldoDaColheita(opt.id, editing?.id)
+                            : null;
+                        return (
+                          <option key={opt.id} value={opt.id}>
+                            {describeRow(f.refTable!, opt, lookups)}
+                            {saldo !== null ? ` · saldo ${formatKg(saldo)} kg` : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   ) : (
                     <Input
                       {...common}
                       type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
                       step={f.step}
+                      max={
+                        isDestinacao && f.name === "quantidade_kg" && saldoAtual !== null
+                          ? Math.max(saldoAtual, 0)
+                          : undefined
+                      }
                     />
                   )}
+                  {isDestinacao && f.name === "colheita_id" && resumoAtual ? (
+                    <p
+                      className={
+                        colheitaEsgotada
+                          ? "rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive"
+                          : "rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground"
+                      }
+                    >
+                      {colheitaEsgotada
+                        ? "Esta colheita já foi totalmente destinada."
+                        : `Colhido: ${formatKg(resumoAtual.colhido)} kg · Destinado: ${formatKg(resumoAtual.destinado)} kg · Disponível: ${formatKg(Math.max(resumoAtual.disponivel, 0))} kg`}
+                    </p>
+                  ) : null}
+                  {isDestinacao && f.name === "quantidade_kg" && excedeSaldo ? (
+                    <p className="text-xs text-destructive">{mensagemExcedente}</p>
+                  ) : null}
                 </div>
               );
             })}
@@ -326,7 +423,7 @@ export function EntityCrud({ entityKey }: { entityKey: EntityKey }) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => save.mutate()} disabled={missingRequired || save.isPending}>
+            <Button onClick={handleSave} disabled={save.isPending || colheitaEsgotada}>
               {save.isPending ? "Salvando…" : "Salvar"}
             </Button>
           </DialogFooter>

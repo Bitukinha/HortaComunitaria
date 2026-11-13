@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/AppShell";
+import { DestinacoesReport } from "@/components/DestinacoesReport";
 import { useLookups, describeRow } from "@/components/EntityCrud";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, listAll } from "@/lib/horta";
@@ -36,6 +37,10 @@ function Historico() {
       title="Histórico"
       subtitle="Últimos registros de atividades, colheitas e destinações da horta."
     >
+      <div className="mb-4">
+        <DestinacoesReport lookups={lookups} />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
