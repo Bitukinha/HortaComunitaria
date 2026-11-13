@@ -14,9 +14,7 @@ import appCss from "../styles.css?url";
 function useServiceWorker() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-
-      });
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
   }, []);
 }
@@ -119,10 +117,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+const themeScript = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <HeadContent />
       </head>
       <body>
@@ -139,7 +140,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {}
       <Outlet />
     </QueryClientProvider>
   );

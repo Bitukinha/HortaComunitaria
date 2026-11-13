@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const nav = [
   { to: "/", label: "Painel" },
@@ -40,11 +41,6 @@ export function AppShell({
           </button>
 
           <Link to="/" className="flex items-center gap-3">
-            <img
-              src="/hortaativa-badge.svg"
-              alt="Logo HortaAtiva"
-              className="h-11 w-11 rounded-xl ring-2 ring-white/10 shadow-lg shadow-emerald-900/20"
-            />
             <span className="flex flex-col leading-none">
               <span className="text-xl font-black tracking-tight">HortaAtiva</span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-deep-foreground/70">
@@ -57,6 +53,7 @@ export function AppShell({
             <span className="hidden rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-deep-foreground/70 sm:inline-flex">
               AEP 2026.2
             </span>
+            <ThemeToggle />
           </div>
         </div>
         <nav
@@ -97,7 +94,7 @@ export function AppShell({
       </main>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        Sistema de Gestão de Hortas Comunitárias · ODS 2, 11 e 12
+        © 2026 - Horta comunitária (Novaes Tech) | Todos os direitos reservados
       </footer>
     </div>
   );
