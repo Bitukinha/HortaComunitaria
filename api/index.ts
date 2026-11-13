@@ -1,10 +1,16 @@
 import serverEntry from "../dist/server/server.js";
 
-// Vercel (runtime Node) só entrega um Request web quando a função
-// é exportada no formato `{ fetch }`. Uma função default comum
-// recebe (req, res) do Node e a resposta nunca é enviada.
-export default {
-  fetch(request: Request) {
-    return serverEntry.fetch(request, {}, {});
-  },
-};
+// Na Vercel (runtime Node), uma função default comum recebe (req, res)
+// do Node, e não um Request web, então a resposta nunca era enviada (504).
+// Exports nomeados por método HTTP recebem um Request web padrão.
+function handle(request: Request) {
+  return serverEntry.fetch(request, {}, {});
+}
+
+export const GET = handle;
+export const HEAD = handle;
+export const POST = handle;
+export const PUT = handle;
+export const PATCH = handle;
+export const DELETE = handle;
+export const OPTIONS = handle;
