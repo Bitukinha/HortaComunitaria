@@ -17,7 +17,7 @@ import { describeRow, type Lookups } from "@/components/EntityCrud";
 import { formatarKg, TIPOS_DESTINO } from "@/domain";
 import { formatDate, listAll, type Row } from "@/lib/horta";
 
-const destinos = entities.destinacoes.fields.find((f) => f.name === "tipo_destino")?.options ?? [];
+const destinos = TIPOS_DESTINO;
 
 function alimentoDaColheita(colheitaId: string, lookups: Lookups) {
   const colheita = lookups.colheitas?.[colheitaId];
